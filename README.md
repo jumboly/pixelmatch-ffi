@@ -22,6 +22,7 @@ mise install          # Rust / uv / .NET SDK / cbindgen（Python 本体は uv �
 mise run test         # Rust / Python / .NET の全テスト
 mise run lint
 mise run header       # C ABI を変えたらヘッダーを再生成
+mise run notices      # 依存を変えたら THIRD-PARTY-NOTICES.txt を再生成（cargo-about）
 ```
 
 ## Python
@@ -67,4 +68,8 @@ Console.WriteLine(r.Mismatch);   // r.Diff は SKBitmap
 
 ## ライセンス
 
-ISC。pixelmatch / pixelmatch-cpp（© Mapbox, ISC）を含む。
+ISC（Copyright (c) 2026, jumboly）。
+
+ネイティブライブラリには pixelmatch-cpp（© Mapbox, ISC）と Rust 標準ライブラリ（MIT）が含まれる。
+第三者ライセンスの一覧は [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) にあり、
+`LICENSE` とともに wheel（`pixelmatch_ffi/_lib/`）と各 nupkg（ルート）に同梱している。

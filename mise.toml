@@ -9,6 +9,8 @@ uv = "0.11"
 # ライブラリは net8.0 を対象にするが、SDK は 10 (LTS) で net8.0 向けにもビルドできる
 dotnet = "10.0"
 "cargo:cbindgen" = "0.29"
+# cli フィーチャーを付けないとコマンド本体がビルドされない
+"cargo:cargo-about" = { version = "0.9", features = "cli" }
 
 [tasks."build"]
 description = "Release ビルドで共有ライブラリ (cdylib) を生成"
@@ -18,6 +20,11 @@ run = "cargo build --release -p pixelmatch-ffi"
 description = "C ヘッダーを cbindgen で再生成"
 dir = "crates/pixelmatch-ffi"
 run = "cbindgen --config cbindgen.toml --output include/pixelmatch_ffi.h"
+
+[tasks."notices"]
+description = "配布物に同梱する第三者ライセンス一覧 (THIRD-PARTY-NOTICES.txt) を cargo-about で再生成"
+# --offline: ネットワーク上のライセンス情報 (ClearlyDefined) に頼らず、同じ入力から同じ出力を得るため
+run = "cargo about generate --workspace --offline --fail -c about.toml -o THIRD-PARTY-NOTICES.txt about.hbs"
 
 [tasks."test:rust"]
 description = "Rust のテスト（pixelmatch-cpp の fixtures を使用）"

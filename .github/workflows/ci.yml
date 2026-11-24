@@ -32,6 +32,12 @@ jobs:
           mise run header
           git diff --exit-code -- crates/pixelmatch-ffi/include
 
+      - name: Third-party notices are up to date
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mise run notices
+          git diff --exit-code -- THIRD-PARTY-NOTICES.txt
+
       - name: Versions are consistent
         if: matrix.os == 'ubuntu-latest'
         run: python3 scripts/check_versions.py

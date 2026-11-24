@@ -1,0 +1,7 @@
+# cargo-about の設定。配布するネイティブライブラリに実際に含まれるクレートだけを列挙する。
+accepted = ["ISC", "MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "BSD-2-Clause", "BSD-3-Clause", "Unicode-3.0", "Zlib"]
+# cc などのビルド専用依存や png などのテスト専用依存はバイナリに含まれないため除外
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
+# 自前のワークスペースクレート (publish = false) は LICENSE 本体でカバーするため一覧に載せない
+private = { ignore = true }

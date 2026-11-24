@@ -4,7 +4,10 @@ description = "Safe Rust API for mapbox/pixelmatch-cpp (pixel-level image compar
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 rust-version.workspace = true
+# crates.io には公開しない（配布は wheel / nupkg のみ）
+publish = false
 
 [dependencies]
 pixelmatch-sys.workspace = true

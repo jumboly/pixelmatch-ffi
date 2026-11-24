@@ -51,6 +51,14 @@ class CustomBuildHook(BuildHookInterface):
             shutil.copy2(lib, dest / name)
         else:
             build_data["force_include"][str(lib)] = f"pixelmatch_ffi/_lib/{name}"
+            # ISC 等は「複製物に著作権表示を含めること」が条件のため、ネイティブライブラリと一緒に同梱する。
+            # license-files はプロジェクト外 (../../) を指すと wheel 内に不正なパスが生じるため使わない
+            repo_root = Path(self.root).resolve().parents[1]
+            for notice in ("LICENSE", "THIRD-PARTY-NOTICES.txt"):
+                src = repo_root / notice
+                if not src.is_file():
+                    raise FileNotFoundError(f"{src} not found; it must be shipped with the wheel")
+                build_data["force_include"][str(src)] = f"pixelmatch_ffi/_lib/{notice}"
 
     def _locate_or_build(self) -> Path:
         prebuilt = os.environ.get("PIXELMATCH_FFI_PREBUILT")
