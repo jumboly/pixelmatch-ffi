@@ -63,7 +63,7 @@ Console.WriteLine(r.Mismatch);   // r.Diff は SKBitmap
 ## リリース
 
 1. `Cargo.toml` / `bindings/python/pyproject.toml` / `pixelmatch_ffi/__init__.py` / `bindings/dotnet/Directory.Build.props` のバージョンを揃える（`python3 scripts/check_versions.py` で確認）
-2. `v<version>` タグを push → wheel / nupkg を GitHub Release に添付し、Pages に PEP 503 インデックスを再生成
+2. `v<version>` タグを push → wheel / nupkg を GitHub Release に添付（release.yml）。完了後に pages.yml が Pages の PEP 503 インデックスを再生成（手動実行も可）
 3. 初回のみ: リポジトリ設定で Pages のソースを「GitHub Actions」にする
 
 ## ライセンス

@@ -1,0 +1,41 @@
+name: Pages
+
+# GitHub Releases の wheel を指す PEP 503 インデックスを再生成して GitHub Pages に公開する。
+# Release ワークフロー内で行うと、先行ジョブが取得した成果物一覧が使い回され、deploy-pages が
+# 直前にアップロードした github-pages 成果物を見つけられず失敗するため、別の実行に分けている。
+# (Release は GITHUB_TOKEN で作成するため release イベントでは起動しない。workflow_run を使う)
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate PEP 503 index from all releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/gen_simple_index.py site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
