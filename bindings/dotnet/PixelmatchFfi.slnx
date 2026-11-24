@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PixelmatchFfi.SkiaSharp/PixelmatchFfi.SkiaSharp.csproj" />
+    <Project Path="src/PixelmatchFfi.SystemDrawing/PixelmatchFfi.SystemDrawing.csproj" />
+    <Project Path="src/PixelmatchFfi/PixelmatchFfi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PixelmatchFfi.Tests/PixelmatchFfi.Tests.csproj" />
+  </Folder>
+</Solution>

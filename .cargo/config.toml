@@ -1,0 +1,4 @@
+# Windows では CRT(+ MSVC の C++ ランタイム) を静的リンクし、
+# 利用者に VC++ 再頒布可能パッケージのインストールを要求しないようにする
+[target.'cfg(all(windows, target_env = "msvc"))']
+rustflags = ["-C", "target-feature=+crt-static"]

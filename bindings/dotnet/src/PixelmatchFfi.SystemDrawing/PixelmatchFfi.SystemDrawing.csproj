@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PackageId>PixelmatchFfi.SystemDrawing</PackageId>
+    <Description>System.Drawing (Bitmap) adapter for PixelmatchFfi. Windows only.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="10.0.15" />
+    <ProjectReference Include="../PixelmatchFfi/PixelmatchFfi.csproj" />
+  </ItemGroup>
+
+</Project>

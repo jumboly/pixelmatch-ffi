@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsAotCompatible>true</IsAotCompatible>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <PackageId>PixelmatchFfi</PackageId>
+    <Description>Pixel-level image comparison (mapbox/pixelmatch) via a native Rust/C++ library.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <!--
+    ネイティブライブラリの取り込み元。
+    - ローカル開発: 既定でリポジトリの target/release（`cargo build -release` の出力）を使う
+    - CI のパッケージング: native/<rid>/ に各 RID のビルド成果物を並べて pack する
+  -->
+  <PropertyGroup>
+    <PixelmatchNativeDir Condition="'$(PixelmatchNativeDir)' == ''">$(MSBuildThisFileDirectory)../../../../target/release</PixelmatchNativeDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(PixelmatchNativeDir)/pixelmatch_ffi.dll" Condition="Exists('$(PixelmatchNativeDir)/pixelmatch_ffi.dll')" CopyToOutputDirectory="PreserveNewest" Pack="false" Link="%(Filename)%(Extension)" />
+    <None Include="$(PixelmatchNativeDir)/libpixelmatch_ffi.so" Condition="Exists('$(PixelmatchNativeDir)/libpixelmatch_ffi.so')" CopyToOutputDirectory="PreserveNewest" Pack="false" Link="%(Filename)%(Extension)" />
+    <None Include="$(PixelmatchNativeDir)/libpixelmatch_ffi.dylib" Condition="Exists('$(PixelmatchNativeDir)/libpixelmatch_ffi.dylib')" CopyToOutputDirectory="PreserveNewest" Pack="false" Link="%(Filename)%(Extension)" />
+
+    <!-- NuGet の規約どおり runtimes/<rid>/native/ に置くと、利用側が RID に応じて自動で選択・配置する -->
+    <None Include="../../native/**/*" Pack="true" PackagePath="runtimes/%(RecursiveDir)native/" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,197 @@
+name: Release
+
+# v* タグの push で、ネイティブライブラリ → wheel / nupkg → GitHub Release → Pages のインデックス を作る
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # glibc 2.28 以降の Linux で動く wheel にするため manylinux_2_28 コンテナ内でビルドする
+          - rid: linux-x64
+            runs-on: ubuntu-latest
+            container: quay.io/pypa/manylinux_2_28_x86_64
+            plat: manylinux_2_28_x86_64
+            lib: libpixelmatch_ffi.so
+          - rid: linux-arm64
+            runs-on: ubuntu-24.04-arm
+            container: quay.io/pypa/manylinux_2_28_aarch64
+            plat: manylinux_2_28_aarch64
+            lib: libpixelmatch_ffi.so
+          - rid: win-x64
+            runs-on: windows-latest
+            lib: pixelmatch_ffi.dll
+          - rid: win-arm64
+            runs-on: windows-11-arm
+            lib: pixelmatch_ffi.dll
+    runs-on: ${{ matrix.runs-on }}
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: jdx/mise-action@v2
+        with:
+          # コンテナ内では .NET は不要（nupkg は別ジョブで作る）
+          install_args: rust uv
+
+      - name: Versions match tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: uv run --no-project --python 3.13 scripts/check_versions.py "${GITHUB_REF_NAME}"
+
+      - name: Build native library
+        run: cargo build --release -p pixelmatch-ffi
+
+      - name: Check Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          ldd target/release/${{ matrix.lib }}
+          ! ldd target/release/${{ matrix.lib }} | grep -q libstdc++
+          objdump -T target/release/${{ matrix.lib }} | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1
+
+      - name: Build wheel
+        shell: bash
+        working-directory: bindings/python
+        env:
+          PIXELMATCH_FFI_PREBUILT: ${{ github.workspace }}/target/release/${{ matrix.lib }}
+        run: uv build --wheel --out-dir dist-raw
+
+      - name: Repair wheel (manylinux tag)
+        if: runner.os == 'Linux'
+        working-directory: bindings/python
+        run: |
+          auditwheel repair --plat ${{ matrix.plat }} -w dist dist-raw/*.whl
+          auditwheel show dist/*.whl
+
+      - name: Collect wheel (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        working-directory: bindings/python
+        run: mkdir -p dist && cp dist-raw/*.whl dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.rid }}
+          path: target/release/${{ matrix.lib }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.rid }}
+          path: bindings/python/dist/*.whl
+
+  # コンテナ外のまっさらなランナーで wheel をインストールして動かし、配布物単体で動くことを確かめる
+  test-wheel:
+    needs: native
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            runs-on: ubuntu-latest
+          - rid: linux-arm64
+            runs-on: ubuntu-24.04-arm
+          - rid: win-x64
+            runs-on: windows-latest
+          - rid: win-arm64
+            runs-on: windows-11-arm
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: jdx/mise-action@v2
+        with:
+          install_args: uv
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheel-${{ matrix.rid }}
+          path: wheel
+      - name: Test installed wheel
+        shell: bash
+        run: |
+          uv venv --python 3.13 .venv-wheel
+          uv pip install --python .venv-wheel wheel/*.whl pytest pillow numpy
+          PY=.venv-wheel/bin/python; [ -x "$PY" ] || PY=.venv-wheel/Scripts/python.exe
+          # リポジトリ直下から実行すると src/ は import パスに入らないため、インストール済み wheel が使われる
+          "$PY" -c "import pixelmatch_ffi, sys; print(pixelmatch_ffi.__file__); assert 'site-packages' in pixelmatch_ffi.__file__"
+          "$PY" -m pytest -q bindings/python/tests
+
+  nuget:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: jdx/mise-action@v2
+        with:
+          install_args: dotnet
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: artifacts
+      - name: Arrange native libraries as runtimes/<rid>/native
+        run: |
+          for d in artifacts/native-*; do
+            rid="${d#artifacts/native-}"
+            mkdir -p "bindings/dotnet/native/$rid"
+            cp "$d"/* "bindings/dotnet/native/$rid/"
+          done
+          find bindings/dotnet/native -type f
+      - name: Pack
+        working-directory: bindings/dotnet
+        run: dotnet pack PixelmatchFfi.slnx -c Release -o nupkg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: bindings/dotnet/nupkg/*.nupkg
+
+  release:
+    needs: [test-wheel, nuget]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+          pattern: "{wheel-*,nupkg}"
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -l dist
+          gh release create "$GITHUB_REF_NAME" dist/*.whl dist/*.nupkg \
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+
+  pages:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate PEP 503 index from all releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/gen_simple_index.py site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

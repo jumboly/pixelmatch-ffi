@@ -1,0 +1,16 @@
+[package]
+name = "pixelmatch-ffi"
+description = "C ABI for pixelmatch, consumed by the Python / .NET bindings"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+# cdylib: Python(ctypes) / .NET(P/Invoke) から動的ロードする本体
+# staticlib: C/C++ から静的リンクしたい利用者向け
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+pixelmatch.workspace = true

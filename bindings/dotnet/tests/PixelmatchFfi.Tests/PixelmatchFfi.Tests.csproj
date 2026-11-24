@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <!-- テスト用 PNG デコーダ。依存の少ないパブリックドメイン実装を選ぶ -->
+    <PackageReference Include="StbImageSharp" Version="2.30.15" />
+    <!-- CI の Linux ランナーで Skia のネイティブライブラリを解決するため（fontconfig 等に依存しない版） -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.157.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <ProjectReference Include="../../src/PixelmatchFfi/PixelmatchFfi.csproj" />
+    <ProjectReference Include="../../src/PixelmatchFfi.SkiaSharp/PixelmatchFfi.SkiaSharp.csproj" />
+    <ProjectReference Include="../../src/PixelmatchFfi.SystemDrawing/PixelmatchFfi.SystemDrawing.csproj" />
+  </ItemGroup>
+
+</Project>

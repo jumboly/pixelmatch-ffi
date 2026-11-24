@@ -1,0 +1,18 @@
+language = "C"
+include_guard = "PIXELMATCH_FFI_H"
+cpp_compat = true
+documentation_style = "c99"
+usize_is_size_t = true
+header = """
+/*
+ * pixelmatch-ffi: C ABI for mapbox/pixelmatch-cpp.
+ * このファイルは cbindgen で自動生成される。直接編集せず `mise run header` で再生成すること。
+ */"""
+
+[export]
+prefix = ""
+include = ["PmStatus"]
+
+[enum]
+rename_variants = "ScreamingSnakeCase"
+prefix_with_name = true

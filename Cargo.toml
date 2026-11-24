@@ -1,0 +1,19 @@
+[workspace]
+resolver = "3"
+members = ["crates/pixelmatch-sys", "crates/pixelmatch", "crates/pixelmatch-ffi"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "ISC"
+rust-version = "1.85"
+repository = "https://github.com/jumboly/pixelmatch-ffi"
+
+[workspace.dependencies]
+pixelmatch-sys = { path = "crates/pixelmatch-sys", version = "0.1.0" }
+pixelmatch = { path = "crates/pixelmatch", version = "0.1.0" }
+
+[profile.release]
+# 配布物は cdylib 1つなので、サイズと速度の両方に効く LTO を有効化
+lto = true
+codegen-units = 1

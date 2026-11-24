@@ -1,0 +1,11 @@
+<Project>
+  <!-- 中核とアダプターのパッケージを常に同じバージョンで出すため、ここで一元管理する -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PackageLicenseExpression>ISC</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/jumboly/pixelmatch-ffi</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/jumboly/pixelmatch-ffi</PackageProjectUrl>
+  </PropertyGroup>
+</Project>

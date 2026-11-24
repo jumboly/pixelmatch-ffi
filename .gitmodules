@@ -1,0 +1,3 @@
+[submodule "vendor/pixelmatch-cpp"]
+	path = vendor/pixelmatch-cpp
+	url = https://github.com/mapbox/pixelmatch-cpp.git

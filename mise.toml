@@ -1,0 +1,48 @@
+#:schema https://mise.jdx.dev/schema/mise.json
+# 開発・CI で同じツールチェインを使うため、バージョンはここで一元管理する。
+# 使い方: `mise install` → `mise run test`
+
+[tools]
+rust = { version = "1.100", components = "rustfmt,clippy" }
+# Python 本体は uv が bindings/python/.python-version に従って取得・管理するため mise では持たない
+uv = "0.11"
+# ライブラリは net8.0 を対象にするが、SDK は 10 (LTS) で net8.0 向けにもビルドできる
+dotnet = "10.0"
+"cargo:cbindgen" = "0.29"
+
+[tasks."build"]
+description = "Release ビルドで共有ライブラリ (cdylib) を生成"
+run = "cargo build --release -p pixelmatch-ffi"
+
+[tasks."header"]
+description = "C ヘッダーを cbindgen で再生成"
+dir = "crates/pixelmatch-ffi"
+run = "cbindgen --config cbindgen.toml --output include/pixelmatch_ffi.h"
+
+[tasks."test:rust"]
+description = "Rust のテスト（pixelmatch-cpp の fixtures を使用）"
+run = "cargo test --workspace"
+
+[tasks."test:python"]
+description = "Python ラッパーのテスト"
+depends = ["build"]
+dir = "bindings/python"
+env = { PIXELMATCH_FFI_LIBRARY = "{{config_root}}/target/release" }
+run = "uv run --extra test pytest -q"
+
+[tasks."test:dotnet"]
+description = ".NET ラッパーのテスト"
+depends = ["build"]
+dir = "bindings/dotnet"
+run = "dotnet test -p:PixelmatchNativeDir={{config_root}}/target/release"
+
+[tasks."test"]
+description = "全テスト"
+depends = ["test:rust", "test:python", "test:dotnet"]
+
+[tasks."lint"]
+description = "fmt / clippy のチェック"
+run = [
+  "cargo fmt --all --check",
+  "cargo clippy --workspace --all-targets -- -D warnings",
+]

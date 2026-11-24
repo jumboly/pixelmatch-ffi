@@ -1,0 +1,12 @@
+/target
+__pycache__/
+*.egg-info/
+.venv/
+dist/
+bindings/python/src/pixelmatch_ffi/_lib/
+bin/
+obj/
+*.nupkg
+bindings/dotnet/native/
+bindings/python/dist-raw/
+bindings/dotnet/nupkg/

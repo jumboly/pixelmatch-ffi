@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      # ツールのバージョンは mise.toml を唯一の正とする
+      - uses: jdx/mise-action@v2
+
+      - name: Lint
+        if: matrix.os == 'ubuntu-latest'
+        run: mise run lint
+
+      - name: Header is up to date
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mise run header
+          git diff --exit-code -- crates/pixelmatch-ffi/include
+
+      - name: Versions are consistent
+        if: matrix.os == 'ubuntu-latest'
+        run: python3 scripts/check_versions.py
+
+      - name: Test (Rust / Python / .NET)
+        run: mise run test
+
+      - name: Native library has no dynamic libstdc++ dependency
+        if: runner.os == 'Linux'
+        run: |
+          ldd target/release/libpixelmatch_ffi.so
+          ! ldd target/release/libpixelmatch_ffi.so | grep -q libstdc++
