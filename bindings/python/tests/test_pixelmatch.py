@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from pixelmatch_ffi import PixelmatchError, native_version, pixelmatch
+from pixelmatch_ffi import PixelmatchError, __version__, native_version, pixelmatch
 
 FIXTURES = Path(__file__).resolve().parents[3] / "vendor" / "pixelmatch-cpp" / "test" / "fixtures"
 
@@ -88,4 +88,5 @@ def test_threads():
 
 
 def test_version():
-    assert native_version() == "0.1.0"
+    # ラッパーと同梱ネイティブライブラリの版ずれを検出する（リリースごとに書き換えずに済むよう固定値にしない）
+    assert native_version() == __version__

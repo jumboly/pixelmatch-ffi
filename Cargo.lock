@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "pixelmatch"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "pixelmatch-sys",
  "png",
@@ -95,14 +95,14 @@ dependencies = [
 
 [[package]]
 name = "pixelmatch-ffi"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "pixelmatch",
 ]
 
 [[package]]
 name = "pixelmatch-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "cc",
 ]

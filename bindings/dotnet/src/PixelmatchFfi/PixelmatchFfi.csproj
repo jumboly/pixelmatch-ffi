@@ -28,7 +28,8 @@
     <None Include="$(PixelmatchNativeDir)/libpixelmatch_ffi.dylib" Condition="Exists('$(PixelmatchNativeDir)/libpixelmatch_ffi.dylib')" CopyToOutputDirectory="PreserveNewest" Pack="false" Link="%(Filename)%(Extension)" />
 
     <!-- NuGet の規約どおり runtimes/<rid>/native/ に置くと、利用側が RID に応じて自動で選択・配置する -->
-    <None Include="../../native/**/*" Pack="true" PackagePath="runtimes/%(RecursiveDir)native/" />
+    <!-- PackagePath を "/" で終えると NuGet が RecursiveDir を再度付け足し runtimes/<rid>/native/<rid>/ になるため、ファイル名まで明示する -->
+    <None Include="../../native/**/*" Pack="true" PackagePath="runtimes/%(RecursiveDir)native/%(Filename)%(Extension)" />
     <None Include="../../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 

@@ -149,6 +149,37 @@ jobs:
       - name: Pack
         working-directory: bindings/dotnet
         run: dotnet pack PixelmatchFfi.slnx -c Release -o nupkg
+
+      # NuGet は runtimes/<rid>/native/ 直下しか探さないため、配置ずれ（RID の二重化等）を公開前に検出する
+      - name: Verify native layout in nupkg
+        working-directory: bindings/dotnet
+        run: |
+          entries=$(unzip -Z1 nupkg/PixelmatchFfi.[0-9]*.nupkg | grep '^runtimes/')
+          echo "$entries"
+          for d in ../../artifacts/native-*; do
+            rid="${d#../../artifacts/native-}"
+            echo "$entries" | grep -qE "^runtimes/$rid/native/[^/]+$" || { echo "missing runtimes/$rid/native/<lib>"; exit 1; }
+          done
+          ! echo "$entries" | grep -qE '^runtimes/[^/]+/native/[^/]+/'
+
+      # ローカルフィード経由で実際にパッケージを参照し、ネイティブライブラリが解決されて動くことを確かめる
+      - name: Smoke test nupkg as a consumer
+        run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' bindings/dotnet/Directory.Build.props)
+          mkdir -p "$RUNNER_TEMP/consumer" && cd "$RUNNER_TEMP/consumer"
+          dotnet new console -o app
+          cd app
+          dotnet add package PixelmatchFfi --version "$version" --source "$GITHUB_WORKSPACE/bindings/dotnet/nupkg"
+          cat > Program.cs <<'CS'
+          using PixelmatchFfi;
+          byte[] a = [0, 0, 0, 255, 0, 0, 0, 255];
+          byte[] b = [255, 255, 255, 255, 0, 0, 0, 255];
+          ulong n = Pixelmatch.Compare(a, b, 2, 1);
+          Console.WriteLine($"native {Pixelmatch.NativeVersion}, mismatch {n}");
+          return n == 1 ? 0 : 1;
+          CS
+          dotnet run
+
       - uses: actions/upload-artifact@v4
         with:
           name: nupkg

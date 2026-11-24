@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 from ._native import Buffer, PmColor, PmImage, PmOptions, lib
 
 __all__ = ["pixelmatch", "PixelmatchError", "__version__", "native_version"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 Color = Tuple[int, int, int]
 

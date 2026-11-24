@@ -69,7 +69,8 @@ public class PixelmatchTests
         var (nativeSize, managedSize) = Pixelmatch.OptionsLayout();
         Assert.Equal(48u, nativeSize);
         Assert.Equal((int)nativeSize, managedSize);
-        Assert.Equal("0.1.0", Pixelmatch.NativeVersion);
+        // マネージドとネイティブの版ずれを検出する（リリースごとに書き換えずに済むよう固定値にしない）
+        Assert.Equal(typeof(Pixelmatch).Assembly.GetName().Version!.ToString(3), Pixelmatch.NativeVersion);
     }
 
     [Fact]

@@ -31,7 +31,7 @@ mise run notices      # 依存を変えたら THIRD-PARTY-NOTICES.txt を再生�
 # ビルド済み wheel（GitHub Pages のインデックス経由）
 uv add pixelmatch-ffi --index https://www.jumboly.jp/pixelmatch-ffi/simple
 # ソースから（Rust ツールチェインと C++17 コンパイラが必要）
-uv add "pixelmatch-ffi @ git+https://github.com/jumboly/pixelmatch-ffi@v0.1.0#subdirectory=bindings/python"
+uv add "pixelmatch-ffi @ git+https://github.com/jumboly/pixelmatch-ffi@v0.1.1#subdirectory=bindings/python"
 ```
 
 ```python
