@@ -38,9 +38,9 @@ jobs:
           mise run notices
           git diff --exit-code -- THIRD-PARTY-NOTICES.txt
 
+      # Windows の既定エンコーディングでも読めることを確かめるため、全 OS で実行する
       - name: Versions are consistent
-        if: matrix.os == 'ubuntu-latest'
-        run: python3 scripts/check_versions.py
+        run: uv run --no-project --python 3.13 scripts/check_versions.py
 
       - name: Test (Rust / Python / .NET)
         run: mise run test

@@ -12,17 +12,18 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# 各ファイルに日本語コメントがあり、Windows の既定エンコーディング (cp1252 等) では読めないため常に UTF-8 を指定する
 
 
 def versions() -> dict[str, str]:
-    cargo = tomllib.loads((ROOT / "Cargo.toml").read_text())["workspace"]["package"]["version"]
-    py = tomllib.loads((ROOT / "bindings/python/pyproject.toml").read_text())["project"]["version"]
+    cargo = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
+    py = tomllib.loads((ROOT / "bindings/python/pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
     init = re.search(
-        r'__version__ = "([^"]+)"', (ROOT / "bindings/python/src/pixelmatch_ffi/__init__.py").read_text()
+        r'__version__ = "([^"]+)"', (ROOT / "bindings/python/src/pixelmatch_ffi/__init__.py").read_text(encoding="utf-8")
     )
     csproj = re.search(
         r"<Version>([^<]+)</Version>",
-        (ROOT / "bindings/dotnet/Directory.Build.props").read_text(),
+        (ROOT / "bindings/dotnet/Directory.Build.props").read_text(encoding="utf-8"),
     )
     return {
         "Cargo.toml": cargo,

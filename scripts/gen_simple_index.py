@@ -47,10 +47,12 @@ def main() -> int:
     pkg_dir = out_dir / "simple" / PROJECT
     pkg_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "simple" / "index.html").write_text(
-        f'<!DOCTYPE html>\n<html><body>\n    <a href="{PROJECT}/">{PROJECT}</a>\n</body></html>\n'
+        f'<!DOCTYPE html>\n<html><body>\n    <a href="{PROJECT}/">{PROJECT}</a>\n</body></html>\n',
+        encoding="utf-8",
     )
     (pkg_dir / "index.html").write_text(
-        "<!DOCTYPE html>\n<html><body>\n" + "\n".join(links) + "\n</body></html>\n"
+        "<!DOCTYPE html>\n<html><body>\n" + "\n".join(links) + "\n</body></html>\n",
+        encoding="utf-8",
     )
     # Jekyll がアンダースコア始まりのファイル等を除外しないよう無効化
     (out_dir / ".nojekyll").touch()
