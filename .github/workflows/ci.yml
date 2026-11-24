@@ -16,11 +16,11 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       # ツールのバージョンは mise.toml を唯一の正とする
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v5
 
       - name: Lint
         if: matrix.os == 'ubuntu-latest'
