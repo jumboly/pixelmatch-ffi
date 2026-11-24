@@ -29,10 +29,10 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
-      - name: Generate PEP 503 index from all releases
+      - name: Generate site (top page + PEP 503 index) from all releases
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/gen_simple_index.py site
+        run: python3 scripts/gen_pages.py site
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
