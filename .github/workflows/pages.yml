@@ -1,9 +1,8 @@
 name: Pages
 
 # GitHub Releases の wheel を指す PEP 503 インデックスを再生成して GitHub Pages に公開する。
-# Release ワークフロー内で行うと、先行ジョブが取得した成果物一覧が使い回され、deploy-pages が
-# 直前にアップロードした github-pages 成果物を見つけられず失敗するため、別の実行に分けている。
-# (Release は GITHUB_TOKEN で作成するため release イベントでは起動しない。workflow_run を使う)
+# Release の成否（wheel / nupkg の公開）と Pages の一時的な失敗を切り離すため、別ワークフローにしている。
+# Release は GITHUB_TOKEN で作成するため release イベントでは起動しない。そのため workflow_run を使う。
 on:
   workflow_run:
     workflows: [Release]
@@ -27,17 +26,26 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Generate PEP 503 index from all releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/gen_simple_index.py site
-      # deploy-pages v4 は REST API の成果物一覧にアップロード直後の成果物が反映されず失敗するため、
-      # アーティファクトサービスを直接参照する v5 系（upload-artifact v7 世代）の組み合わせを使う
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
+
+      # アップロード直後の成果物は deploy-pages の成果物一覧に数十秒〜1分ほど現れず、
+      # "No artifacts named github-pages" で失敗することがある（2026-11 に実測: 0.7 秒後は 0 件、
+      # 約 70 秒後は検出）。待ち時間を常に払わないよう、失敗した時だけ待って 1 回再試行する
       - id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+      - name: Wait for the artifact to become visible
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 90
+      - id: deploy-retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
